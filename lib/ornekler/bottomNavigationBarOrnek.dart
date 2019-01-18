@@ -5,7 +5,11 @@ class BottomNavigationBarOrnek extends StatelessWidget {
   Widget build(BuildContext context) {
     return new Scaffold(
       appBar: AppBar(
-        title: Text("Bottom Nav Demo"),
+        title: Text("Bottom Nav Demo"),        
+      ),
+      body: Center(
+        child: Card(
+          child: Text("data"),)
       ),
       bottomNavigationBar: new BottomNavigationBar(
         items: <BottomNavigationBarItem>[

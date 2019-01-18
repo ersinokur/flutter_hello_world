@@ -19,7 +19,7 @@ class TabBarDemo extends StatelessWidget {
         ),
         //sayfainin ortasinda
       body: TabBarView(
-        children: <Widget>[
+        children: <Widget>[          
           Icon(Icons.directions_car),
           Icon(Icons.directions_bus),
           Icon(Icons.directions_walk),

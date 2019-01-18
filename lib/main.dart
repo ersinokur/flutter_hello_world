@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:hello_world/ornekler/MaterialStructureAndLayoutDemo/home.dart';
+import 'package:hello_world/ornekler/learningdemo.dart';
+//import 'package:hello_world/ornekler/tabbaedNavigation.dart';
 // import 'ornekler/ortadaKutu.dart';
 // import 'ornekler/ortadauckutu.dart';
 // import 'ornekler/drawerMenuOrnek.dart';
@@ -8,7 +11,7 @@ import 'package:flutter/material.dart';
 //import 'ornekler/FancyTabBar//fancytabbardemo.dart';
 //import 'ornekler/snackbardemo.dart';
  //import 'package:hello_world/ornekler/orientationlist.dart'; --calismadi
- import 'package:hello_world/ornekler/ChatInterface/chatscreen.dart';
+ //import 'package:hello_world/ornekler/ChatInterface/chatscreen.dart';
 
 
 void main() => runApp(MyApp());
@@ -19,9 +22,9 @@ class MyApp extends StatelessWidget {
     return new MaterialApp(
       title: "EO app",
       theme: new ThemeData(
-        primarySwatch: Colors.deepPurple,
+       // primarySwatch: Colors.deepPurple,
       ),
-      home:  ChatScreen(),
+      home: Home(),
       
 
       // new Scaffold(
