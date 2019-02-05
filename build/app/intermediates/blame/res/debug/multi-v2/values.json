@@ -1,10 +1,10 @@
 {
     "logs": [
         {
-            "outputFile": "F:\\Source\\github\\flutter_hello_world\\build\\app\\intermediates\\incremental\\mergeDebugResources\\merged.dir\\values\\values.xml",
+            "outputFile": "F:\\eoDocs\\Source\\github\\flutter_hello_world\\build\\app\\intermediates\\incremental\\mergeDebugResources\\merged.dir\\values\\values.xml",
             "map": [
                 {
-                    "source": "F:\\Source\\github\\flutter_hello_world\\android\\app\\src\\main\\res\\values\\styles.xml",
+                    "source": "F:\\eoDocs\\Source\\github\\flutter_hello_world\\android\\app\\src\\main\\res\\values\\styles.xml",
                     "from": {
                         "startLines": "2",
                         "startColumns": "4",
