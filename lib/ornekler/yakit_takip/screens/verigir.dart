@@ -4,8 +4,10 @@ import 'package:hello_world/ornekler/yakit_takip/mixins/validation_mixin.dart';
 import 'package:hello_world/ornekler/yakit_takip/models/stations.dart';
 import 'package:hello_world/ornekler/yakit_takip/models/tuketim.dart';
 import 'package:datetime_picker_formfield/datetime_picker_formfield.dart';
-import 'package:hello_world/ornekler/yakit_takip/tools/numericTextFormatter.dart';
+//import 'package:hello_world/ornekler/yakit_takip/tools/input_validation_page.dart';
+import 'package:hello_world/ornekler/yakit_takip/tools/validator.dart';
 import 'package:intl/intl.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 class YakitGir extends StatefulWidget {
   _YakitGirState createState() => _YakitGirState();
@@ -16,18 +18,19 @@ class _YakitGirState extends State<YakitGir> {
   final _formKey = GlobalKey<FormState>();
 
   final _stations = stationList;
-  // List<String> _stations = <String>[
-  //   '',
-  //   'Shell',
-  //   'Opet',
-  //   'BP',
-  //   'Total',
-  //   'Petrol Ofisi'
-  // ];
-
   Station _station;
 
-  double _lastKm = 10000;
+  @override
+  void initState() {
+    super.initState();
+
+    tuketim.sonKilometreSayaci = 0;
+    tuketim.alinanYakitMiktari=0;
+    tuketim.birimFiyat=0;
+    tuketim.yakitKilometreSayaci=0;
+    tuketim.alinanMesafe=0;
+    tuketim.toplamTutar=0;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -37,16 +40,18 @@ class _YakitGirState extends State<YakitGir> {
         margin: EdgeInsets.all(8.0),
         padding:
             EdgeInsets.all(8.0), //const EdgeInsets.symmetric(horizontal: 16.0),
-        child: SingleChildScrollView(
+        child: SafeArea(
             child: Form(
           key: _formKey,
-          child: Column(
+          child: ListView(
             children: <Widget>[
-              Text('Son sayaç: $_lastKm'),
+              Text('Son sayaç: ${tuketim.sonKilometreSayaci.toStringAsFixed(0)}'),
               _stationsField(),
-              _yakitKilometreSayaciField(),
+              _currentKilometreSayaciField(),
               _unitPriceField(),
+              _buyingFuelVolumeField(),
               _buyingDate(),
+              _calculatedValuesArea(),
               Padding(
                 padding: const EdgeInsets.only(top: 10.0),
                 child: submitButton(),
@@ -56,7 +61,7 @@ class _YakitGirState extends State<YakitGir> {
         )));
   }
 
-  _yakitKilometreSayaciField() {
+  _currentKilometreSayaciField() {
     return TextFormField(
       validator: (val) {
         if (val == "") {
@@ -64,21 +69,21 @@ class _YakitGirState extends State<YakitGir> {
         }
         if (double.tryParse(val) <= 10) {
           return "sayac sifirdan büyük olmalı!";
-        } else if (double.parse(val) <= _lastKm) {
+        } else if (double.parse(val) <= tuketim.sonKilometreSayaci) {
           return "sayac onceki sayactan büyük olmalı!";
         }
         return null;
       },
       maxLength: 6,
       keyboardType: TextInputType.number,
-      textInputAction: TextInputAction.next, //TextInputAction.done,
+      textInputAction: TextInputAction.done,
       //      textAlign: TextAlign.right,kkk
       inputFormatters: <TextInputFormatter>[
         WhitelistingTextInputFormatter.digitsOnly
       ],
       decoration: InputDecoration(
           labelText: 'Enter current km counter',
-          icon: Icon(Icons.drag_handle),
+          icon: Icon(FontAwesomeIcons.car),
           fillColor: Colors.white),
       onSaved: (value) {
         tuketim.yakitKilometreSayaci = double.tryParse(value);
@@ -91,7 +96,7 @@ class _YakitGirState extends State<YakitGir> {
       builder: (FormFieldState state) {
         return InputDecorator(
           decoration: InputDecoration(
-            icon: const Icon(Icons.battery_charging_full),
+            icon: const Icon(FontAwesomeIcons.mapMarkerAlt),
             labelText: 'Station',
           ),
           isEmpty: _station == null,
@@ -118,23 +123,6 @@ class _YakitGirState extends State<YakitGir> {
       validator: (val) {
         if (val == null) {
           return "Select your gas station";
-        }
-      },
-    );
-  }
-
-  Widget submitButton() {
-    return RaisedButton(
-      child: Text(
-        "Save",
-        style: TextStyle(fontSize: 16.9),
-      ),
-      color: Colors.pinkAccent,
-      textColor: Colors.white70,
-      onPressed: () {
-        if (this._formKey.currentState.validate()) {
-          _formKey.currentState.save();
-          saveTuketim(tuketim);
         }
       },
     );
@@ -175,29 +163,109 @@ class _YakitGirState extends State<YakitGir> {
         }
         return null;
       },
-      // maxLength: 6,
-
-      textInputAction: TextInputAction.next, //TextInputAction.done,
-      //      textAlign: TextAlign.right,kkk
-      inputFormatters: <TextInputFormatter>[
-        WhitelistingTextInputFormatter.digitsOnly,
-        new NumericTextFormatter(),
+      textInputAction: TextInputAction.done,
+      inputFormatters: [
+        ValidatorInputFormatter(
+          editingValidator: DecimalNumberEditingRegexValidator(1),
+        )
       ],
       keyboardType: TextInputType.number,
       decoration: InputDecoration(
           labelText: 'Enter unit price',
-          icon: Icon(Icons.pause_circle_outline),
+          hintText: '\$0.00',
+          icon: new Icon(FontAwesomeIcons.liraSign),
           fillColor: Colors.white),
       onSaved: (value) {
-        tuketim.yakitKilometreSayaci = double.tryParse(value);
+        tuketim.birimFiyat = double.tryParse(value);
       },
     );
+  }
+
+  _buyingFuelVolumeField() {
+    return TextFormField(
+      validator: (val) {
+        if (val == "") {
+          return 'Lüftden bir değer giriniz';
+        }
+        if (double.tryParse(val) <= 0) {
+          return "unit price >=0";
+        }
+        return null;
+      },
+      textInputAction: TextInputAction.done,
+      inputFormatters: [
+        ValidatorInputFormatter(
+          editingValidator: DecimalNumberEditingRegexValidator(2),
+        )
+      ],
+      keyboardType: TextInputType.number,
+      decoration: InputDecoration(
+          labelText: 'Enter total liters',
+          hintText: '\00.0000 lt',
+          icon: new Icon(FontAwesomeIcons.gasPump),
+          fillColor: Colors.white),
+      onSaved: (value) {
+        tuketim.alinanYakitMiktari = double.tryParse(value);
+        _calculated();
+      },
+    );
+  }
+
+  submitButton() {
+    return RaisedButton(
+      child: Text(
+        "Save",
+        style: TextStyle(fontSize: 16.9),
+      ),
+      color: Theme.of(context).accentColor,
+      textColor: Colors.white70,
+      onPressed: () {
+        if (this._formKey.currentState.validate()) {
+          _formKey.currentState.save();
+          // setState(() {
+          //   tuketim.toplamTutar =
+          //       tuketim.alinanYakitMiktari * tuketim.birimFiyat;
+          // });
+
+          saveTuketim(tuketim);
+        }
+      },
+    );
+  }
+
+  void _calculated() {
+    setState(() {
+      tuketim.toplamTutar = tuketim.alinanYakitMiktari * tuketim.birimFiyat;
+      tuketim.alinanMesafe =
+          tuketim.yakitKilometreSayaci - tuketim.sonKilometreSayaci;
+    });
+  }
+
+  _calculatedValuesArea() {
+    return Card(
+        margin: const EdgeInsets.only(top: 20.0),
+        color: Colors.lightGreenAccent,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.all(Radius.zero),
+        ),
+        child: Row(
+          children: <Widget>[
+            Text(
+                '${tuketim.birimFiyat} x ${tuketim.alinanYakitMiktari.toStringAsFixed(2)} = ${tuketim.toplamTutar.toStringAsFixed(2)} TL'),
+            SizedBox(
+              width: 10.0,
+            ),
+            Text('${tuketim.alinanMesafe} km')
+          ],
+        ));
   }
 
   void saveTuketim(Tuketim tuketim) {
     print(tuketim.yakitKilometreSayaci);
     print(tuketim.istasyon);
     print(tuketim.tarih);
+    print(tuketim.birimFiyat);
+    print(tuketim.alinanYakitMiktari);
   }
 
 //-------------
